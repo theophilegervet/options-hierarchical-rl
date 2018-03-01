@@ -1,0 +1,20 @@
+experiment 12:
+1500 episodes total, at episode 750 add patch of negative rewards below goal
+epsilon greedy policy over options (0.10 temp, 0.01 epsilon as usual)
+
+observations:
+- decent convergence
+- same kind of behaviour as before: 
+    one option does all the job at the beginning
+    when add patch, other options develop in places where this option is bad
+
+
+
+experiment 13:
+same as 12 with softmax policy over options
+
+observations:
+- diverges for temp = 0.001 for policy over options
+- good convergence for temp = 0.01 for policy over options
+- same kind of behaviour as before
+    

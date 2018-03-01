@@ -1,0 +1,160 @@
+initial settings:
+rng = np.random.RandomState(1234)
+softmax policy over policies
+discount = 0.99
+lr_term = 0.25
+lr_intra = 0.25
+lr_critic = 0.5
+temperature = 0.01
+noptions = 4
+nsteps = 1000
+nepisodes = 750
+
+
+
+experiment 1: 
+change goal from 62 (right doorway) to 19 (in top right room) after 250 episodes
+
+observations:
+- temperature = 0.01 -> diverges after change of goal location
+- temperature = 1.00 -> does not diverge after change of goal location, 
+                        but does not converge to decent optimum either before or after
+- temperature = 0.10 -> better
+
+
+
+experiment 2: 
+test if can recover from more extreme change in goal
+change goal to 0 (top left cell) after 250 episodes
+
+observations:
+- temperature = 0.01 -> diverges after change
+- temperature = 0.10 -> better
+- extreme probabilities in options (i.e p(action) > 0.9) seem not to change much 
+  instead options use terminations to get out of places options which already have high proba on wrong actions
+  and develop extreme probabilities in new places 
+
+
+
+experiment 3:
+test if can recover even if had more time to specialize to first goal
+change goal to 0 (top left cell) after 750 episodes, and run for 1500 episodes total
+
+observations:
+- temperature = 0.10 -> diverges (having more time to specialize does hurt transfer learning)
+- temperature = 1.00 -> does not diverge but bad optimums 
+side remark 1: the smoother the policies (high temperature), the smoother the terminations
+side remark 2: it's hard to visualize smooth policies
+
+
+
+experiment 4:
+test if epsilon greedy policy over options helps
+
+observations:
+- temperature = 0.10 / epsilon = 0.01
+        -> good convergence 
+        -> uses one option before goal change and another one (or two) after
+- increase epsilon to 0.01 -> same behaviour
+- decrease temperature to 0.01 -> doesn't recover nearly as well after change
+                                                               
+                                                               
+                                                               
+experiment 5:
+test if the problem in experiment 3 was not the softmax policy over options 
+but the temperature parameter common to option policies
+
+observations:
+- temperature = 0.01 for option policies, 0.10 for main policy -> diverges after change
+- temperature = 0.10 for option policies, 0.01 for main policy (mimics setting experiment 4)
+        -> good convergence 
+        -> different behaviour than with epsilon greedy policy over options
+           uses all four options from the start + same observations as experiment 2
+
+
+
+experiment 6:
+4000 episodes with three goal changes at 1000, 2000, 3000
+epsilon greedy policy over options (temperature = 0.10, epsilon = 0.01)
+
+observations:
+- same kind of behaviour as with one goal change (one option does most of the job for every phase)
+
+
+
+experiment 7:
+same as experiment 6
+softmax policy over options (temperature = 0.10 for options, 0.001 for main policy)
+
+observations:
+- higher temperatures for main policy -> much worse recovering after second and third goal changes
+- same kind of behaviour as with one goal change (uses all options from the start and what is already high proba doesn't change)
+
+
+
+experiment 8:
+8000 episodes with 7 goal changes and last four goals very close to first four goals
+epsilon greedy policy over options (temperature = 0.10, epsilon = 0.01)
+
+observations:
+- good convergence
+- options become more and more specialized
+- high probabilities still don't change much, options which haven't specialized yet in the region of the state space
+    where there was a minor change in goal develop to account for this change
+
+
+
+experiment 9:
+same as experiment 8
+softmax policy over options (temperature = 0.10 for options, 0.001 for main policy)
+
+observations:
+- worse recovery than with epsilon greedy policy 
+- harder to interpret
+
+
+
+experiment 10:
+20000 episodes with 19 random goal changes
+epsilon greedy policy over options (temperature = 0.10, epsilon = 0.01)
+
+observations:
+- pretty good convergence after most changes
+- policies specialized almost everywhere at the end (p > 0.9 for some action in every state)
+- terminations get stronger and stronger
+
+
+
+experiment 11:
+same as 10 with temp = 0.01 for options
+
+observations:
+- much worse convergence
+
+
+
+CONCLUSIONS:
+- different behaviours with epsilon greedy or softmax policy over options
+    epsilon greedy -> uses one option before goal change a different another one (or two) after
+    => see EXPERIMENT 4
+
+    softmax -> uses all options from the start which specializes in different parts of the state space
+    => see EXPERIMENT 5
+
+- extreme probabilities in options (i.e p(action) > 0.9) seem not to change much
+    instead options use terminations to get out of places options which already have high proba on wrong actions
+    and develop high probabilities on right actions in other options not specialized yet
+    => see EXPERIMENT 6
+
+- termination probas never decrease below 0.5 and never seem to decrease in general
+    doesn't encourage long options 
+    => see experiment 10 plots for terminations and avg length of options
+
+    something feels off about the way terminations are done
+    epsilon greedy policy, a single option does the job picked many times in a row, should be one single extended option
+    
+RANDOM REMARKS:                   
+- hyper-parameter choices are crucial 
+    too sharp or smooth policies hurt transfer learning a lot (e.g Boltzmann with temperature = 0.01 or 1.00)
+    higher and lower values of epsilon also hurt
+- the sharper the policies (low temperature), the higher the terminations (pretty intuitive)

@@ -1,0 +1,23 @@
+experiment 1:
+2000 episodes, change of goal at episode 1000
+
+experiment 2:
+do longer periods between changes improve model learning?
+6000 episodes, change of goal at episode 3000
+-> hurts even more when we change
+-> only option followed most of the time has an accurate estimated reward matrix
+
+experiment 3:
+behaviour with more changes?
+4000 episodes, change of goal at episode 1000, 2000, 3000
+-> model of transitions is decent, and of rewards is pretty bad
+-> only options heavily used have an accurate model of transition probabilities
+-> options used in a small part of the state space have a very limited model of transitions
+
+experiment 4:
+try with softmax policy over options so that all options are used a bit everywhere
+same as experiment 3 otherwise
+
+experiment 5:
+try with longer adaptation periods between changes
+same as experiment 4 otherwise
